@@ -42,7 +42,7 @@ import struct
 SR = 8000                       # telephony rate -- matches the real spandsp
                                 # captures and is authentically "phone"
 OUT = "dialup.wav"
-PHONE_NUMBER = "18005551212"    # what the caller dials (DTMF)
+PHONE_NUMBER = "12484345508"    # what the caller dials (DTMF)
 SEED = 1990                     # deterministic re-runs; change for variation
 
 # The post-connect carrier is REAL modem audio captured from spandsp (modemgen.c).
@@ -56,6 +56,8 @@ CONNECT_STYLE = "hybrid"
 V22_RAW = "connect_v22.raw"
 V17_RAW = "connect_v17.raw"
 CONNECT_AT = 13.0               # seconds: where the carrier comes in (over probe tail)
+LINE_NOISE = True               # faint line hiss + 60 Hz mains hum for realism;
+                                # set False for a clean recording (keeps the carrier)
 
 PI = math.pi
 TWO_PI = 2.0 * math.pi
@@ -357,16 +359,17 @@ def build():
 
 
 def process(master):
-    rng = random.Random(SEED + 99)
     n = len(master)
 
     # Hybrid echo (2-wire/4-wire leakage)
     master = add_echo(master, ms=55, g=0.16)
 
     # Line hiss + faint mains hum, added pre-filter so they get shaped too
-    for i in range(n):
-        master[i] += (rng.random() * 2 - 1) * 0.006          # hiss
-        master[i] += 0.004 * sin(TWO_PI * 60.0 * i / SR)     # 60 Hz hum
+    if LINE_NOISE:
+        rng = random.Random(SEED + 99)
+        for i in range(n):
+            master[i] += (rng.random() * 2 - 1) * 0.006          # hiss
+            master[i] += 0.004 * sin(TWO_PI * 60.0 * i / SR)     # 60 Hz hum
 
     # Telephone band-pass: 300 Hz HPF -> 3400 Hz LPF
     master = highpass(lowpass(master, 3400.0), 300.0)

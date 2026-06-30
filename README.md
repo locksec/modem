@@ -83,9 +83,10 @@ Edit the constants at the top of `dialup.py`:
 | Constant        | Default          | Meaning                                            |
 | --------------- | ---------------- | -------------------------------------------------- |
 | `CONNECT_STYLE` | `"hybrid"`       | `"hybrid"`, `"v17"`, or `"v22"` (see below)        |
-| `PHONE_NUMBER`  | `"18005551212"`  | Digits dialed with DTMF                            |
+| `PHONE_NUMBER`  | a digit string   | Digits dialed via DTMF (e.g. `"15551234567"`)       |
 | `SEED`          | `1990`           | Deterministic re-runs; change for variation        |
 | `CONNECT_AT`    | `13.0`           | Seconds: when the carrier comes in, over the probe |
+| `LINE_NOISE`    | `True`           | Faint line hiss + 60 Hz hum; `False` for a clean recording |
 
 Connect styles:
 
