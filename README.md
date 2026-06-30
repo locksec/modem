@@ -24,31 +24,53 @@ Two programs, each doing the part it is good at:
 
 The whole thing then runs through a telephone channel: 300–3400 Hz band-pass, hybrid echo, line hiss, mains hum, and gentle companding. Output is 8 kHz mono 16-bit PCM, the authentic phone rate.
 
-## Requirements
+## Platforms
 
-- macOS with [Homebrew](https://brew.sh/)
-- A C compiler (Xcode Command Line Tools: `xcode-select --install`)
-- Python 3 (standard library only)
-- spandsp: `brew install spandsp`
+Rendering the WAV runs on Linux, macOS, and Windows. `dialup.py` is pure Python standard library, and the captured connection files (`connect_*.raw`) are committed, so no compiler or external library is needed to produce `dialup.wav`.
 
-## Build and run
+Regenerating the captures needs a C compiler and spandsp. That works on macOS and Linux natively; on Windows it works under [WSL](https://learn.microsoft.com/windows/wsl/). spandsp has no practical native Windows build, but you never need it just to render — the captures already ship with the repo.
 
-```
-brew install spandsp
-make
-afplay dialup.wav
-```
+## Render the call
 
-`make` compiles `modemgen`, captures the two real connections, and renders `dialup.wav`. To force a fresh render after editing settings:
+Needs only Python 3:
 
 ```
-rm dialup.wav && make
+python3 dialup.py        # macOS / Linux
+py dialup.py             # Windows
 ```
 
-To run the steps by hand:
+On macOS and Linux you can also run `make`.
+
+Play it:
+
+| Platform | Command                                |
+| -------- | -------------------------------------- |
+| macOS    | `afplay dialup.wav`                    |
+| Linux    | `aplay dialup.wav` (or `ffplay`)        |
+| Windows  | `start dialup.wav` (or double-click it) |
+
+## Regenerating the captures (optional)
+
+Only needed if you change `modemgen.c` or want fresh captures. Install spandsp and a C compiler:
+
+| Platform        | Install                                              |
+| --------------- | --------------------------------------------------- |
+| macOS           | `brew install spandsp` (and `xcode-select --install`) |
+| Debian / Ubuntu | `sudo apt install libspandsp-dev build-essential`    |
+| Fedora          | `sudo dnf install spandsp-devel gcc make`            |
+| Windows         | Use WSL, then follow the Linux steps                 |
+
+Then:
 
 ```
-cc modemgen.c -o modemgen -I"$(brew --prefix)/include" -L"$(brew --prefix)/lib" -lspandsp -lm
+make capture     # rebuild modemgen and re-record connect_v22.raw / connect_v17.raw
+make             # re-render dialup.wav
+```
+
+Or by hand on Linux (spandsp headers and libs are in standard paths):
+
+```
+cc modemgen.c -o modemgen -lspandsp -lm
 ./modemgen v22 9 connect_v22.raw
 ./modemgen v17 6 connect_v17.raw
 python3 dialup.py
@@ -82,6 +104,6 @@ spandsp implements V.22bis (2400 bps, full duplex) and the V.17 / V.29 fax carri
 | `dialup.py`        | Synthesizes the front half, splices the capture, renders the WAV |
 | `modemgen.c`       | Captures real modem audio via spandsp loopback        |
 | `Makefile`         | Builds and renders everything                         |
-| `connect_v22.raw`  | Generated: full-duplex V.22bis capture (8 kHz PCM)    |
-| `connect_v17.raw`  | Generated: V.17 14400 high-speed capture (8 kHz PCM)  |
-| `dialup.wav`       | Generated: the finished call                          |
+| `connect_v22.raw`  | Committed capture: full-duplex V.22bis (8 kHz PCM)    |
+| `connect_v17.raw`  | Committed capture: V.17 14400 high-speed (8 kHz PCM)  |
+| `dialup.wav`       | The finished call (regenerate with `make`)            |

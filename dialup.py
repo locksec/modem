@@ -229,10 +229,8 @@ def load_raw(path):
             data = fh.read()
     except FileNotFoundError:
         raise SystemExit(
-            f"missing {path}. Build and run the capture first:\n"
-            "  cc modemgen.c -o modemgen -I/opt/homebrew/include "
-            "-L/opt/homebrew/lib -lspandsp -lm\n"
-            "  ./modemgen v22 9 connect_v22.raw && ./modemgen v17 6 connect_v17.raw"
+            f"missing {path}. The captured connection files ship with the repo; "
+            "to regenerate them run `make capture` (needs spandsp)."
         )
     n = len(data) // 2
     return [v / 32768.0 for v in struct.unpack("<%dh" % n, data)]
